@@ -1,0 +1,758 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 92'%3E%3Cg fill='none' stroke='%23F2B48C' stroke-width='6' stroke-linecap='round'%3E%3Cpath d='M60 4v14M31 14l8 11M89 14l-8 11M28 56a32 32 0 0 1 64 0z'/%3E%3Cpath d='M30 70c10-6 20 6 30 0s20 6 30 0'/%3E%3C/g%3E%3C/svg%3E">
+<style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style>
+<title>Naïve Swimwear</title>
+<meta name="description" content="Naïve Swimwear · Colección de playa. Asoleadores, pareos, enterizos y salidas de baño. Contraentrega a toda Colombia.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Jost:wght@300;400;500&display=swap">
+<style>
+/* Layout: catálogo de playa: portada a sangre, secciones como páginas del catálogo, bolsa flotante que arma el pedido por WhatsApp */
+:root{
+  --arena:#F4ECE1;      /* fondo crema arena */
+  --arena-2:#EADFCF;    /* tarjetas */
+  --cacao:#4A3020;      /* texto y bandas */
+  --cacao-2:#7A5A44;    /* texto suave */
+  --sol:#F2B48C;        /* durazno del logo */
+  --linea:#D9CAB5;
+  --sobre-cacao:#F4ECE1;
+  --display:"Cormorant Garamond", "Cormorant", Garamond, "Times New Roman", serif;
+  --body:"Jost", "Futura", "Avenir Next", system-ui, sans-serif;
+  --wa:#1F8A4C;
+}
+:root{color-scheme:light}
+
+*{box-sizing:border-box}
+body{background:var(--arena);color:var(--cacao);font-family:var(--body);font-weight:300;font-size:16px;line-height:1.55;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1120px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+h1,h2,h3{font-family:var(--display);font-weight:400;margin:0;text-wrap:balance;line-height:1.05}
+h2{font-size:clamp(2.2rem,5vw,3.2rem)}
+h2 em,h1 em{font-style:italic;color:var(--cacao-2)}
+.eyebrow{font-size:.7rem;letter-spacing:.32em;text-transform:uppercase;color:var(--cacao-2);font-weight:400}
+.price{font-family:var(--display);font-size:1.6rem;font-weight:500;font-variant-numeric:tabular-nums;white-space:nowrap}
+button{font:inherit;color:inherit;cursor:pointer}
+:focus-visible{outline:2px solid var(--sol);outline-offset:3px}
+img{display:block}
+
+/* header */
+header.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:color-mix(in srgb,var(--arena) 88%,transparent);backdrop-filter:blur(10px);border-bottom:1px solid var(--linea)}
+header.top .barra{display:flex;align-items:center;justify-content:space-between;gap:14px;padding-block:10px}
+.buscar{flex:1;max-width:360px;display:flex;align-items:center;gap:8px;background:var(--arena-2);border:1px solid transparent;border-radius:999px;padding:8px 14px;transition:border-color .2s}
+.buscar:focus-within{border-color:var(--cacao-2)}
+.buscar svg{flex:none;width:16px;height:16px;stroke:var(--cacao-2)}
+.buscar input{border:0;background:none;outline:none;font:inherit;font-size:.9rem;color:var(--cacao);width:100%;min-width:0}
+.buscar input::placeholder{color:var(--cacao-2)}
+@media (max-width:480px){.logo b{display:none}}
+.cats{border-top:1px solid var(--linea)}
+.cats .wrap{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;padding-block:7px;scroll-behavior:smooth}
+.cats .wrap::-webkit-scrollbar{display:none}
+.cat{flex:none;border:0;background:none;padding:8px 14px;border-radius:999px;font-size:.74rem;letter-spacing:.14em;text-transform:uppercase;color:var(--cacao-2);display:flex;gap:7px;align-items:center;transition:background .25s,color .25s}
+.cat:hover{color:var(--cacao);background:var(--arena-2)}
+.cat .c{font-size:.68rem;opacity:.75;letter-spacing:0;font-variant-numeric:tabular-nums}
+.cat[aria-selected="true"]{background:var(--cacao);color:var(--sobre-cacao)}
+.cat .new{background:var(--sol);color:#3A2416;border-radius:999px;font-size:.58rem;padding:2px 7px;letter-spacing:.08em}
+.pop{animation:pop .45s ease}
+/* barra de anuncio + cabecera centrada */
+.anuncio{background:var(--cacao-2);color:#FBF6EF;text-align:center;font-size:.82rem;letter-spacing:.05em;padding-block:9px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));transition:opacity .3s}
+.anuncio b{color:#FFD9BF;font-weight:500}
+a.anuncio{display:block;text-decoration:none}
+a.anuncio:hover .ver-mas{text-decoration:underline}
+@media (max-width:480px){.ver-mas{display:none}}
+/* banner promo asoleadores */
+.promo-aso{display:flex;justify-content:space-between;align-items:center;gap:8px 20px;flex-wrap:wrap;background:var(--cacao);color:var(--sobre-cacao);border-radius:999px;padding:9px 20px;margin-bottom:18px}
+.pa-txt{display:flex;align-items:center;gap:10px}
+.pa-txt .tag-p{padding:2px 8px}
+.pa-big{font-family:var(--display);font-size:1.25rem;line-height:1.1}
+.pa-big b{font-weight:600;color:#FFD9BF}
+.pa-small{display:none}
+.pa-prog{display:flex;align-items:center;gap:8px;font-size:.78rem;opacity:.9}
+.pa-dots{display:flex;gap:5px}
+.pa-dots i{width:12px;height:12px;border-radius:50%;border:1.5px solid #FFD9BF;transition:background .3s}
+@media (max-width:520px){.promo-aso{border-radius:12px}}
+.pa-dots i.on{background:#FFD9BF}
+header.top .cabeza{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:8px;padding-block:10px}
+.icon-btn{width:44px;height:44px;display:grid;place-items:center;border:0;background:none;border-radius:50%;position:relative;color:var(--cacao)}
+.icon-btn:hover{background:var(--arena-2)}
+.icon-btn svg{width:23px;height:23px;stroke:currentColor;fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+.icon-btn .n{position:absolute;top:3px;right:1px;background:var(--sol);color:#3A2416;border-radius:999px;min-width:18px;height:18px;font-size:.66rem;display:grid;place-items:center;font-weight:500;padding:0 4px}
+.iconos{display:flex;justify-content:flex-end;gap:2px}
+.marca{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--cacao)}
+.marca svg{width:42px;height:34px;flex:none}
+.marca span{display:grid;line-height:1}
+.marca b{font-family:var(--display);font-weight:600;font-size:2rem;letter-spacing:.03em}
+.marca small{font-size:.56rem;letter-spacing:.45em;color:var(--cacao-2);margin-top:4px;text-transform:uppercase}
+@media (max-width:420px){.marca svg{width:34px}.marca b{font-size:1.7rem}}
+.buscador{border-top:1px solid var(--linea)}
+.buscador .wrap{padding-block:10px}
+.buscador input{width:100%;font:inherit;font-size:1rem;color:var(--cacao);background:var(--arena-2);border:1px solid var(--linea);border-radius:999px;padding:11px 18px;outline:none}
+.buscador input:focus{border-color:var(--cacao-2)}
+/* encabezado del catálogo con botones de categoría */
+.catalogo{text-align:center;padding-block:56px 8px}
+.catalogo h2{margin-bottom:24px}
+.pills{display:flex;gap:10px;overflow-x:auto;scrollbar-width:none;justify-content:safe center;padding:4px 2px;position:relative}
+.pills::-webkit-scrollbar{display:none}
+.pills .cat{border:1px solid var(--linea);background:var(--arena);padding:11px 20px;font-size:.92rem;letter-spacing:.01em;text-transform:none;color:var(--cacao)}
+.pills .cat:hover{border-color:var(--cacao-2);background:var(--arena)}
+.pills .cat[aria-selected="true"]{background:var(--cacao);border-color:var(--cacao);color:var(--sobre-cacao)}
+.hero{min-height:min(560px,76vh)}
+.hero h1{font-size:clamp(2.8rem,6vw,4.6rem)}
+/* menú lateral */
+.menu{position:fixed;top:0;left:0;bottom:0;width:min(340px,88%);background:var(--arena);z-index:41;display:flex;flex-direction:column;padding:calc(14px + env(safe-area-inset-top,0px)) 0 calc(18px + env(safe-area-inset-bottom,0px)) env(safe-area-inset-left,0px);box-shadow:20px 0 40px rgba(0,0,0,.18);animation:desliza .3s ease both}
+@keyframes desliza{from{transform:translateX(-100%)}to{transform:none}}
+.drawer{animation:deslizaR .3s ease both}
+@keyframes deslizaR{from{transform:translateX(100%)}to{transform:none}}
+.menu-top{display:flex;justify-content:space-between;align-items:center;padding:0 12px 14px 18px;border-bottom:1px solid var(--linea)}
+.menu-top .marca b{font-size:1.6rem}
+.menu-links{display:grid;align-content:start;gap:2px;padding:12px 10px;flex:1;overflow:auto}
+.menu-links a{display:flex;justify-content:space-between;align-items:center;padding:14px 12px;border-radius:10px;text-decoration:none;color:var(--cacao);font-size:1.05rem}
+.menu-links a:hover{background:var(--arena-2)}
+.menu-links a[aria-current="true"]{background:var(--arena-2);font-weight:400}
+.menu-links .c{font-size:.75rem;color:var(--cacao-2)}
+.menu-pie{display:grid;gap:10px;padding:16px 18px 0;border-top:1px solid var(--linea)}
+/* WhatsApp flotante */
+.wa-float{position:fixed;right:calc(18px + env(safe-area-inset-right,0px));bottom:calc(18px + env(safe-area-inset-bottom,0px));width:58px;height:58px;border-radius:50%;background:var(--wa);display:grid;place-items:center;box-shadow:0 8px 24px rgba(31,138,76,.35);z-index:30;transition:transform .2s}
+.wa-float:hover{transform:scale(1.07)}
+.wa-float svg{width:28px;height:28px;fill:none;stroke:#fff;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+@keyframes pop{40%{transform:scale(1.15)}}
+.vista-anim{animation:entra .45s ease both}
+@keyframes entra{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+.sin{padding-block:80px;text-align:center;color:var(--cacao-2)}
+.sin h2{color:var(--cacao);margin-bottom:8px}
+.resultado{padding-top:28px;color:var(--cacao-2);font-size:.9rem}
+/* vista rápida */
+.qv-fondo{position:fixed;inset:0;z-index:45;background:rgba(30,18,10,.5);display:grid;place-items:center;padding:max(16px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) max(16px,env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
+.qv-box{position:relative;background:var(--arena);border-radius:16px;max-width:840px;width:100%;max-height:100%;overflow:auto;display:grid;grid-template-columns:1fr 1fr;animation:entra .3s ease both}
+.qv-img{background:var(--arena-2)}
+.qv-img img{width:100%;height:100%;object-fit:cover;aspect-ratio:3/4}
+.qv-info{padding:28px;display:grid;gap:16px;align-content:start;min-width:0}
+.qv-info h3{font-size:2.6rem}
+.qv-box .x{position:absolute;top:10px;right:10px;background:var(--arena);border-radius:50%;width:38px;height:38px;z-index:2}
+.sw{width:30px;height:30px;border-radius:50%;border:3px solid var(--arena);box-shadow:0 0 0 1px var(--linea);padding:0;transition:transform .15s}
+.sw:hover{transform:scale(1.1)}
+.sw[aria-pressed="true"]{box-shadow:0 0 0 2px var(--cacao)}
+@media (max-width:640px){.qv-box{grid-template-columns:1fr}.qv-img img{aspect-ratio:1/1}.qv-info{padding:20px}}
+/* favoritos */
+.carrusel{display:grid;grid-auto-flow:column;grid-auto-columns:min(72%,280px);gap:16px;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;padding-bottom:6px;scroll-behavior:smooth}
+.carrusel::-webkit-scrollbar{display:none}
+.fav-card{scroll-snap-align:start;display:grid;gap:10px;align-content:start}
+.fav-card .ph{position:relative;aspect-ratio:4/5;border-radius:10px;overflow:hidden;background:var(--arena-2)}
+.fav-card img{width:100%;height:100%;object-fit:cover;transition:transform .6s ease}
+.fav-card .ph:hover img{transform:scale(1.05)}
+.fav-card .tag{position:absolute;top:10px;left:10px;background:rgba(255,255,255,.9);color:#4A3020;border-radius:999px;font-size:.64rem;letter-spacing:.14em;text-transform:uppercase;padding:4px 10px;pointer-events:none}
+.fav-card .row{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.fav-card h3{font-size:1.6rem;display:flex;align-items:center;gap:10px}
+.fav-card .mas{border:1px solid var(--cacao);background:none;border-radius:999px;padding:7px 14px;font-size:.8rem;flex:none}
+.fav-card .mas:hover{background:var(--cacao);color:var(--sobre-cacao)}
+.fav-card small{color:var(--cacao-2);font-size:.82rem}
+.flechas{display:flex;gap:8px}
+.flechas button{width:42px;height:42px;border-radius:50%;border:1px solid var(--linea);background:var(--arena);font-size:1.1rem}
+.flechas button:hover{background:var(--cacao);color:var(--sobre-cacao)}
+@media (max-width:600px){.flechas{display:none}}
+/* sub-bloques de promociones y dos piezas */
+.subs{display:grid;gap:64px}
+.sub-head{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:18px}
+.sub-head h3{font-size:clamp(1.7rem,3.5vw,2.3rem)}
+.tag-p{background:var(--sol);color:#3A2416;border-radius:999px;font-size:.64rem;letter-spacing:.14em;text-transform:uppercase;padding:4px 10px;font-weight:500}
+.tag-o{border:1px solid var(--cacao-2);color:var(--cacao-2);border-radius:999px;font-size:.64rem;letter-spacing:.14em;text-transform:uppercase;padding:3px 10px}
+.ver{display:block;width:100%;height:100%;border:0;padding:0;background:none;cursor:zoom-in}
+.logo{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--cacao)}
+.logo svg{width:38px;height:auto}
+.logo b{font-family:var(--display);font-weight:600;font-size:1.6rem;letter-spacing:.01em}
+nav.secciones{display:flex;gap:22px;font-size:.78rem;letter-spacing:.18em;text-transform:uppercase}
+nav.secciones a{color:var(--cacao-2);text-decoration:none}
+nav.secciones a:hover{color:var(--cacao)}
+.bolsa-btn{display:flex;align-items:center;gap:8px;background:var(--cacao);color:var(--sobre-cacao);border:0;border-radius:999px;padding:9px 16px;font-size:.85rem;letter-spacing:.04em}
+.bolsa-btn .n{background:var(--sol);color:#4A3020;border-radius:999px;min-width:22px;height:22px;display:grid;place-items:center;font-size:.75rem;font-weight:500}
+@media (max-width:820px){nav.secciones{display:none}}
+
+/* hero */
+.hero{position:relative;display:grid;grid-template-columns:1.05fr 1fr;min-height:min(640px,82vh);background:var(--arena-2)}
+.hero-img{background:url(img/moca.jpg) center/cover;min-height:340px}
+.hero-txt{color:var(--cacao);display:flex;flex-direction:column;justify-content:flex-end;gap:22px;padding:48px max(16px,env(safe-area-inset-right,0px)) 48px clamp(16px,5vw,64px)}
+.hero h1{font-size:clamp(3.6rem,9vw,6.5rem);font-weight:500}
+.hero h1 + p{font-family:var(--display);font-style:italic;font-size:clamp(1.4rem,3vw,2rem);margin:-10px 0 0;color:var(--cacao-2)}
+.hero .meta{font-size:.9rem;opacity:.85;max-width:36ch}
+.promo-card{background:var(--arena);color:var(--cacao);border-radius:14px;padding:18px 22px;display:grid;gap:4px;max-width:330px}
+.promo-card .row{display:flex;justify-content:space-between;align-items:baseline;gap:16px}
+.promo-card .row span:first-child{font-size:.85rem}
+.promo-card .price{font-size:1.4rem}
+.cta{display:inline-flex;align-items:center;gap:10px;background:var(--sol);color:#3A2416;border:0;border-radius:999px;padding:13px 22px;font-size:.9rem;font-weight:500;letter-spacing:.04em;text-decoration:none;width:max-content}
+@media (max-width:760px){.hero{grid-template-columns:1fr}.hero-img{min-height:58vw}}
+
+/* confianza */
+.confianza{border-bottom:1px solid var(--linea)}
+.confianza .wrap{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;padding-block:22px}
+.confianza div{display:flex;gap:12px;align-items:center;font-size:.9rem}
+.confianza svg{flex:none;width:26px;height:26px;stroke:var(--cacao-2)}
+@media (max-width:700px){.confianza .wrap{grid-template-columns:1fr;gap:12px}}
+
+/* secciones */
+section.cap{padding-block:72px 24px}
+.cap-head{display:flex;justify-content:space-between;align-items:flex-end;gap:20px;border-bottom:1px solid var(--linea);padding-bottom:18px;margin-bottom:28px;flex-wrap:wrap}
+.cap-head p{margin:6px 0 0;color:var(--cacao-2);max-width:48ch}
+
+/* asoleadores */
+.aso-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:22px 16px}
+.aso{display:grid;gap:8px;align-content:start}
+.aso .add{border:0;cursor:pointer}
+.aso .ph{position:relative;aspect-ratio:3/4;border-radius:6px;overflow:hidden;background:var(--arena-2)}
+.aso img{width:100%;height:100%;object-fit:cover;transition:transform .5s ease}
+.aso:hover img{transform:scale(1.04)}
+.aso .num{position:absolute;top:8px;left:8px;background:rgba(255,255,255,.85);color:#4A3020;font-size:.68rem;border-radius:999px;padding:2px 8px;font-variant-numeric:tabular-nums}
+.aso .add{position:absolute;right:8px;bottom:8px;background:var(--cacao);color:var(--sobre-cacao);border-radius:999px;font-size:.75rem;padding:6px 12px;letter-spacing:.04em;opacity:.95}
+.aso .name{display:flex;align-items:center;gap:8px;font-size:.95rem}
+.dot{width:11px;height:11px;border-radius:50%;flex:none;box-shadow:inset 0 0 0 1px rgba(0,0,0,.18)}
+.banda{margin-top:28px;background:var(--cacao);color:var(--sobre-cacao);border-radius:10px;padding:14px 22px;display:flex;justify-content:space-between;align-items:center;gap:12px 28px;flex-wrap:wrap;font-size:.9rem}
+.banda .price{font-size:1.35rem}
+
+/* fichas de producto */
+.ficha{display:grid;grid-template-columns:1.2fr 1fr;gap:clamp(20px,4vw,48px);align-items:start}
+.ficha .fotos{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.ficha .fotos img{width:100%;aspect-ratio:3/4;object-fit:cover;border-radius:6px}
+.ficha .fotos img.full{grid-column:1/-1;aspect-ratio:4/3}
+.panel{background:var(--arena-2);border-radius:14px;padding:24px;display:grid;gap:18px;min-width:0}
+.panel .row{display:flex;justify-content:space-between;align-items:baseline;gap:12px}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{border:1px solid var(--linea);background:var(--arena);border-radius:999px;padding:7px 14px;font-size:.85rem;display:flex;align-items:center;gap:8px}
+.chip[aria-pressed="true"]{border-color:var(--cacao);background:var(--cacao);color:var(--sobre-cacao)}
+.lbl{font-size:.68rem;letter-spacing:.28em;text-transform:uppercase;color:var(--cacao-2);margin-bottom:8px}
+.add-big{background:var(--cacao);color:var(--sobre-cacao);border:0;border-radius:999px;padding:13px 20px;font-size:.9rem;letter-spacing:.04em}
+.add-big:disabled{opacity:.45;cursor:not-allowed}
+.nota{font-size:.82rem;color:var(--cacao-2);margin:0}
+@media (max-width:820px){.ficha{grid-template-columns:1fr}}
+
+/* tarjetas productos */
+.prod-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:22px 16px}
+@media (max-width:900px){.prod-grid{grid-template-columns:repeat(2,1fr)}}
+.prod{display:grid;gap:10px;align-content:start}
+.prod .ph{aspect-ratio:3/4;border-radius:6px;overflow:hidden;background:var(--arena-2)}
+.prod img{width:100%;height:100%;object-fit:cover}
+.prod .row{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.prod h3{font-size:1.5rem}
+.prod .price{font-size:1.25rem}
+.prod .ph img{transition:transform .5s ease}
+.prod .ph:hover img{transform:scale(1.04)}
+.prod .agregar{border:1px solid var(--cacao);background:transparent;border-radius:999px;padding:9px;font-size:.82rem;letter-spacing:.04em}
+.prod .agregar:hover{background:var(--cacao);color:var(--sobre-cacao)}
+
+/* precios */
+.promo-band{background:var(--arena-2);color:var(--cacao);margin-top:72px}
+.promo-band .wrap{display:grid;grid-template-columns:1fr 1.2fr;gap:40px;padding-block:64px}
+.lista{display:grid}
+.lista div{display:flex;justify-content:space-between;align-items:baseline;gap:16px;border-bottom:1px solid var(--linea);padding-block:10px}
+.lista span:first-child{font-size:.75rem;letter-spacing:.22em;text-transform:uppercase}
+.lista .price{font-size:1.45rem}
+.paleta{display:flex;flex-wrap:wrap;gap:8px;margin-top:20px}
+.paleta .dot{width:18px;height:18px}
+@media (max-width:760px){.promo-band .wrap{grid-template-columns:1fr}}
+
+footer{padding-block:40px 120px;text-align:center;color:var(--cacao-2);font-size:.75rem;letter-spacing:.3em;text-transform:uppercase}
+footer svg{width:54px;margin:0 auto 10px}
+
+/* bolsa */
+.overlay{position:fixed;inset:0;background:rgba(30,18,10,.45);z-index:40}
+.drawer{position:fixed;top:0;right:0;bottom:0;width:min(420px,100%);background:var(--arena);z-index:41;display:flex;flex-direction:column;padding:calc(20px + env(safe-area-inset-top,0px)) max(20px,env(safe-area-inset-right,0px)) calc(20px + env(safe-area-inset-bottom,0px)) 20px;gap:16px;box-shadow:-20px 0 40px rgba(0,0,0,.2)}
+.drawer header{display:flex;justify-content:space-between;align-items:center}
+.drawer h2{font-size:2rem}
+.x{background:none;border:0;font-size:1.6rem;line-height:1;padding:4px 8px}
+.items{flex:1;overflow:auto;display:grid;align-content:start;gap:12px}
+.item{display:grid;grid-template-columns:56px 1fr auto;gap:12px;align-items:center}
+.item img{width:56px;height:70px;object-fit:cover;border-radius:4px}
+.item small{display:block;color:var(--cacao-2)}
+.qty{display:flex;align-items:center;gap:6px}
+.qty button{width:28px;height:28px;border-radius:50%;border:1px solid var(--linea);background:var(--arena-2)}
+.resumen{border-top:1px solid var(--linea);padding-top:14px;display:grid;gap:6px;font-size:.9rem}
+.resumen .row{display:flex;justify-content:space-between}
+.resumen .tot{font-family:var(--display);font-size:1.7rem;font-weight:500}
+.ahorro{color:var(--wa)}
+.wa{display:flex;justify-content:center;align-items:center;gap:10px;background:var(--wa);color:#fff;text-decoration:none;border-radius:999px;padding:14px;font-weight:500;letter-spacing:.03em}
+.vacio{color:var(--cacao-2);text-align:center;padding:40px 0}
+
+.toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--cacao);color:var(--sobre-cacao);padding:12px 20px;border-radius:999px;font-size:.88rem;z-index:50;transition:opacity .25s}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="sol" viewBox="0 0 120 92"><g fill="none" stroke="#F2B48C" stroke-width="4.5" stroke-linecap="round">
+    <path d="M60 4v14M31 14l8 11M89 14l-8 11M10 34l14 7M110 34l-14 7M6 56h13M101 56h13"/>
+    <path d="M28 56a32 32 0 0 1 64 0z"/>
+    <path d="M30 68c10-6 20 6 30 0s20 6 30 0"/><path d="M44 80c6-4 11 4 16 0s11 4 16 0"/></g></symbol>
+</svg>
+
+<header class="top">
+  <a class="anuncio" href="#asoleadores" data-ir="asoleadores">Promo asoleadores · <b>1 × $40.000</b> · <b>3 × $100.000</b><span class="ver-mas"> · Ver colores →</span></a>
+  <div class="wrap cabeza">
+    <div><button class="icon-btn" id="abrirMenu" aria-label="Abrir menú"><svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button></div>
+    <a class="marca" href="#todo" data-ir="todo" aria-label="Naïve Swimwear, inicio"><svg viewBox="0 0 120 92" aria-hidden="true"><use href="#sol"/></svg><span><b>Naïve</b><small>Swimwear</small></span></a>
+    <div class="iconos">
+      <button class="icon-btn" id="abrirBuscar" aria-label="Buscar" aria-expanded="false"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg></button>
+      <button class="icon-btn" id="abrirBolsa" aria-label="Abrir bolsa"><svg viewBox="0 0 24 24"><path d="M6 8h12l-1 12H7z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></svg><span class="n" id="cuenta" hidden>0</span></button>
+    </div>
+  </div>
+  <div class="buscador" id="buscador" hidden><div class="wrap"><input id="q" type="search" placeholder="Busca un color o prenda: rojo, enterizo, Dalia…" aria-label="Buscar productos" autocomplete="off"></div></div>
+</header>
+
+<section class="hero" id="inicio" data-vista="inicio">
+  <div class="hero-img" role="img" aria-label="Asoleador color moca sobre tela clara con sombras de palmera"></div>
+  <div class="hero-txt">
+    <div class="eyebrow">Nueva temporada</div>
+    <h1>Colección <em>de playa</em></h1>
+    <div class="promo-card" aria-label="Promoción">
+      <div class="eyebrow">Promoción</div>
+      <div class="row"><span>1 asoleador</span><span class="price">$40.000</span></div>
+      <div class="row"><span>3 asoleadores</span><span class="price">$100.000</span></div>
+      <div class="row"><span>Pareo + asoleador</span><span class="price">$75.000</span></div>
+    </div>
+    <a class="cta" href="#asoleadores" data-ir="asoleadores">Ver colección →</a>
+    <p class="nota">Pago contraentrega a toda Colombia desde $45.000</p>
+  </div>
+</section>
+
+<main id="main">
+  <section class="cap wrap" id="favoritos" data-vista="inicio">
+    <div class="cap-head">
+      <div><div class="eyebrow">Lo más pedido</div><h2>Best <em>sellers</em></h2></div>
+      <div class="flechas"><button id="favPrev" aria-label="Anterior">←</button><button id="favNext" aria-label="Siguiente">→</button></div>
+    </div>
+    <div class="carrusel" id="favs"></div>
+  </section>
+  <div class="wrap catalogo" id="catalogoHead">
+    <h2>Nuestra <em>colección</em></h2>
+    <div class="pills" role="tablist" aria-label="Categorías" id="cats"></div>
+  </div>
+  <div class="wrap resultado" id="resultado" hidden></div>
+  <section class="cap wrap" id="asoleadores" data-vista="asoleadores">
+    <div class="cap-head">
+      <div><div class="eyebrow">Colección asoleadores · 01 — 13</div><h2>Asole<em>adores</em></h2><p>Talla única con tiras ajustables.</p></div>
+    </div>
+    <div class="promo-aso">
+      <div class="pa-txt"><span class="tag-p">Promo</span><div class="pa-big">3 asoleadores <b>$100.000</b></div><div class="pa-small">1 asoleador $40.000 · Ahorras $20.000 combinando los colores que quieras</div></div>
+      <div class="pa-prog"><div class="pa-dots" id="paDots" aria-hidden="true"><i></i><i></i><i></i></div><span id="paTxt">Elige 3 colores y paga $100.000</span></div>
+    </div>
+    <div class="chips" id="asoFiltro" style="margin-bottom:22px">
+      <button class="chip" data-g="todos" aria-pressed="true">Todos · 13</button>
+      <button class="chip" data-g="tierra" aria-pressed="false"><span class="dot" style="background:#9C7A5E"></span>Tonos tierra · 6</button>
+      <button class="chip" data-g="vibrante" aria-pressed="false"><span class="dot" style="background:#D0158A"></span>Vibrantes y pastel · 7</button>
+    </div>
+    <div class="aso-grid" id="asoGrid"></div>
+    <div style="text-align:center;margin-top:28px"><button class="add-big" id="asoMas">Ver los 13 colores</button></div>
+  </section>
+
+  <section class="cap wrap" id="promociones" data-vista="promociones">
+    <div class="cap-head"><div><div class="eyebrow">Sets de 3 piezas</div><h2>Promo<em>ciones</em></h2><p>Lleva el look completo de playa a un mejor precio.</p></div></div>
+    <div class="subs">
+      <div class="sub" id="subCombo">
+        <div class="sub-head"><h3>Pareo + asoleador</h3><span class="tag-p">3 piezas</span></div>
+        <div class="ficha">
+          <div class="fotos"><img class="full" src="img/combo.jpg" alt="Pareo de tul café con asoleador chocolate" style="aspect-ratio:1/1"></div>
+          <div class="panel">
+            <div class="row"><span class="eyebrow">Top + panty + pareo</span><span class="price">$75.000</span></div>
+            <div><div class="lbl">Color del pareo</div><div class="chips" id="pareoChips"></div></div>
+            <div><div class="lbl">Color del asoleador</div><div class="chips" id="comboAsoChips"></div></div>
+            <button class="add-big" id="addCombo" disabled>Elige los dos colores</button>
+          </div>
+        </div>
+      </div>
+      <div class="sub" id="subDaliaPromo">
+        <div class="sub-head"><h3>Dalia + set Estrella</h3><span class="tag-p">3 piezas</span><span class="tag-o">Nuevo</span></div>
+        <div class="ficha">
+          <div class="fotos"><img src="img/estrella.jpg" alt="Salida de baño set Estrella negra con estrella dorada"><img src="img/dalia.jpg" alt="Vestido de baño Dalia negro"></div>
+          <div class="panel">
+            <div class="row"><span class="eyebrow">Top + panty + salida</span><span class="price">$110.000</span></div>
+            <p class="nota">Vestido de baño Dalia con la salida de baño set Estrella y su detalle de estrella dorada.</p>
+            <div><div class="lbl">Color</div><div class="chips" id="dpColor"></div></div>
+            <div><div class="lbl">Talla</div><div class="chips" id="dpTalla"></div></div>
+            <button class="add-big" id="addDP" disabled>Elige color y talla</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="cap wrap" id="dospiezas" data-vista="dospiezas">
+    <div class="cap-head"><div><div class="eyebrow">Vestidos de baño</div><h2>Dos <em>piezas</em></h2></div></div>
+    <div class="subs">
+      <div class="sub" id="subBicolor">
+        <div class="sub-head"><h3>Bikini bicolor</h3><span class="tag-o">Talla única</span></div>
+        <div class="ficha">
+          <div class="fotos"><img class="full" src="img/bicolor1.jpg" alt="Bikinis bicolor marrón con blanco y negro con blanco" style="aspect-ratio:4/5"><img src="img/bicolor2.jpg" alt="Bikini blanco con negro" style="aspect-ratio:1/1"><img src="img/bicolor3.jpg" alt="Bikini amarillo con azul" style="aspect-ratio:1/1"></div>
+          <div class="panel">
+            <div class="row"><span class="eyebrow">Tiras con argollas</span><span class="price">$60.000</span></div>
+            <div><div class="lbl">Combinación</div><div class="chips" id="biChips"></div></div>
+            <button class="add-big" id="addBi" disabled>Elige una combinación</button>
+          </div>
+        </div>
+      </div>
+      <div class="sub" id="subDalia">
+        <div class="sub-head"><h3>Dalia</h3><span class="tag-o">S · M · L</span><span class="tag-o">Nuevo</span></div>
+        <div class="ficha">
+          <div class="fotos"><img class="full" src="img/dalia.jpg" alt="Vestido de baño Dalia negro" style="aspect-ratio:4/5"></div>
+          <div class="panel">
+            <div class="row"><span class="eyebrow">Top + panty</span><span class="price">$80.000</span></div>
+            <p class="nota">Con detalle de estrella dorada. ¿La quieres con salida? Mira la promo Dalia + set Estrella.</p>
+            <div><div class="lbl">Color</div><div class="chips" id="d2Color"></div></div>
+            <div><div class="lbl">Talla</div><div class="chips" id="d2Talla"></div></div>
+            <button class="add-big" id="addD2" disabled>Elige color y talla</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="cap wrap" id="enterizos" data-vista="enterizos">
+    <div class="cap-head"><div><div class="eyebrow">Class Gold · Paradise · Sxy</div><h2>Enterizos</h2></div><span class="price">Todos $90.000</span></div>
+    <div class="prod-grid" id="entGrid"></div>
+  </section>
+
+  <section class="cap wrap" id="salidas" data-vista="salidas">
+    <div class="cap-head"><div><div class="eyebrow">Falda · Pantalón · Bata · Malla</div><h2>Salidas <em>de baño</em></h2><p>Combínalas con tu asoleador o enterizo.</p></div><span class="price">desde $50.000</span></div>
+    <div class="prod-grid" id="salGrid"></div>
+  </section>
+  <div class="wrap sin" id="sin" hidden><h2>No encontramos eso</h2><p>Prueba con un color, como “rojo”, o una prenda, como “enterizo”.</p></div>
+</main>
+
+<footer>
+  <svg viewBox="0 0 120 92" aria-hidden="true"><use href="#sol"/></svg>
+  Naïve Swimwear · naiveswimwear.com
+</footer>
+
+<div class="overlay" id="overlay" hidden></div>
+<aside class="drawer" id="drawer" hidden aria-label="Tu bolsa">
+  <header><h2>Tu bolsa</h2><button class="x" id="cerrar" aria-label="Cerrar bolsa">×</button></header>
+  <div class="items" id="items"></div>
+  <div class="resumen" id="resumen"></div>
+  <a class="wa" id="wa" href="#" target="_blank" rel="noopener">Enviar pedido por WhatsApp</a>
+  <p class="nota" style="text-align:center">Pedidos al WhatsApp 311 246 7960 · Contraentrega a toda Colombia en compras desde $45.000</p>
+</aside>
+<div class="toast" id="toast" hidden></div>
+<div class="overlay" id="menuFondo" hidden></div>
+<aside class="menu" id="menu" hidden aria-label="Menú">
+  <div class="menu-top"><a class="marca" href="#todo" data-ir="todo"><svg viewBox="0 0 120 92" aria-hidden="true"><use href="#sol"/></svg><span><b>Naïve</b><small>Swimwear</small></span></a><button class="x" id="menuX" aria-label="Cerrar menú">×</button></div>
+  <nav class="menu-links" id="menuLinks" aria-label="Categorías"></nav>
+  <div class="menu-pie">
+    <div class="eyebrow">Escríbenos</div>
+    <a class="wa" id="menuWa" href="#" target="_blank" rel="noopener">Pedir por WhatsApp</a>
+    <p class="nota" style="text-align:center">311 246 7960</p>
+  </div>
+</aside>
+<a class="wa-float" id="waFloat" href="#" target="_blank" rel="noopener" aria-label="Escríbenos por WhatsApp"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20l1.3-3.9A8 8 0 1 1 8 19z"/><path d="M9.5 9.5c.3 1.8 2.2 3.8 4 4.2l1-1 1.5.7c-.3 1-1.2 1.6-2.2 1.4-2.8-.5-5-2.8-5.4-5.5-.1-1 .5-1.9 1.4-2.2l.7 1.5z"/></svg></a>
+<div class="qv-fondo" id="qv" hidden>
+  <div class="qv-box" role="dialog" aria-modal="true" aria-labelledby="qvT">
+    <button class="x" id="qvX" aria-label="Cerrar">×</button>
+    <div class="qv-img"><img id="qvImg" alt=""></div>
+    <div class="qv-info">
+      <div class="eyebrow" id="qvEy"></div>
+      <h3 id="qvT"></h3>
+      <span class="price" id="qvP"></span>
+      <div class="chips" id="qvSw"></div>
+      <p class="nota" id="qvD"></p>
+      <button class="add-big" id="qvAdd">Agregar a la bolsa</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// Cambia este número por el WhatsApp de ventas (código de país + número, sin espacios ni +)
+const WHATSAPP = "573112467960";
+
+const COLORES = [
+  ["Moca","moca","#9C7A5E"],["Chocolate","chocolate","#4A2C1E"],["Vino","vino","#6E0F1E"],
+  ["Negro","negro","#151515"],["Blanco","blanco","#F7F5F0"],["Verde esmeralda","verde","#0E4A33"],
+  ["Rojo","rojo","#C8141B"],["Naranja","naranja","#F26A12"],["Fucsia","fucsia","#D0158A"],
+  ["Rosa palo","rosa","#F2AFC0"],["Amarillo pastel","amarillo","#F5E58A"],["Azul cielo","azulcielo","#78BDF0"],
+  ["Azul rey","azulrey","#1235C8"]
+];
+const PAREO = [["Negro","#151515"],["Rojo","#C8141B"],["Amarillo mantequilla","#F2E2A0"],["Blanco","#F7F5F0"],["Vinotinto","#6E0F1E"],["Marrón","#5A3A26"],["Azul bebé","#A9D2F2"]];
+const DALIA_COL = [["Negro","#151515"],["Albaricoque","#F4D9B8"],["Rojo vivo","#D4141B"]];
+const BICOLOR = [["Negro con Blanco","#151515","#F7F5F0"],["Blanco con Negro","#F7F5F0","#151515"],["Marrón con Blanco","#5A3A26","#F7F5F0"],["Blanco con Marrón","#F7F5F0","#5A3A26"],["Amarillo con Azul","#F5E15A","#3C8DE0"],["Azul con Amarillo","#3C8DE0","#F5E15A"]];
+const ENTERIZOS = [["Class Gold","classgold"],["Paradise","paradise"],["Sxy","sxy"],["Sxy · espalda con argolla","sxy2","Sxy"]];
+const SALIDAS = [["Falda","falda",65000],["Pantalón","pantalon",65000],["Bata","bata",50000],["Malla","malla",65000]];
+
+const $ = id => document.getElementById(id);
+const fmt = n => "$" + n.toLocaleString("es-CO");
+const esc = s => s.replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+let bolsa = [];
+try { bolsa = JSON.parse(localStorage.getItem("naive-bolsa") || "[]"); } catch (e) {}
+const guardar = () => { try { localStorage.setItem("naive-bolsa", JSON.stringify(bolsa)); } catch (e) {} };
+
+function agregar(item) {
+  const k = item.tipo + "|" + item.nombre + "|" + (item.detalle || "");
+  const ya = bolsa.find(b => b.k === k);
+  if (ya) ya.cant++; else bolsa.push({ ...item, k, cant: 1 });
+  guardar(); pintarBolsa(); avisar(item.nombre + " agregado a tu bolsa");
+  const bb = $("abrirBolsa"); bb.classList.remove("pop"); void bb.offsetWidth; bb.classList.add("pop");
+}
+const norm = s => s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
+let tId;
+function avisar(t) { const el = $("toast"); el.textContent = t; el.hidden = false; clearTimeout(tId); tId = setTimeout(() => el.hidden = true, 1800); }
+
+// asoleadores
+const asoItem = i => { const [n, f] = COLORES[i]; return { tipo: "aso", nombre: "Asoleador " + n, img: f, precio: 40000, ref: String(i + 1).padStart(2, "0") }; };
+$("asoGrid").innerHTML = COLORES.map(([n, f, c], i) => `
+  <div class="aso" data-grupo="${i < 6 ? "tierra" : "vibrante"}" data-q="${norm("asoleador bikini " + n + (i < 6 ? " tierra" : " vibrante pastel"))}">
+    <div class="ph"><button class="ver" data-i="${i}" aria-label="Ver asoleador ${n}"><img src="img/${f}.jpg" alt="" loading="lazy"></button><span class="num">${String(i + 1).padStart(2, "0")}</span><button class="add" data-i="${i}" aria-label="Agregar asoleador ${n}">+ Agregar</button></div>
+    <span class="name"><span class="dot" style="background:${c}"></span>${n}</span>
+  </div>`).join("");
+$("asoGrid").addEventListener("click", e => {
+  const b = e.target.closest("button"); if (!b) return;
+  if (b.classList.contains("add")) agregar(asoItem(+b.dataset.i)); else qvAso(+b.dataset.i);
+});
+
+// filtro tierra / vibrantes y "ver más"
+let asoGrupo = "todos", asoTodo = false;
+function aplicarAso() {
+  const items = [...document.querySelectorAll("#asoGrid .aso")];
+  const vis = items.filter(el => asoGrupo === "todos" || el.dataset.grupo === asoGrupo);
+  const lim = asoGrupo === "todos" && !asoTodo ? 6 : vis.length;
+  items.forEach(el => el.hidden = true);
+  vis.forEach((el, i) => el.hidden = i >= lim);
+  $("asoMas").hidden = lim >= vis.length;
+  document.querySelectorAll("#asoFiltro .chip").forEach(c => c.setAttribute("aria-pressed", c.dataset.g === asoGrupo));
+}
+$("asoFiltro").addEventListener("click", e => { const b = e.target.closest(".chip"); if (b) { asoGrupo = b.dataset.g; aplicarAso(); } });
+$("asoMas").onclick = () => { asoTodo = true; aplicarAso(); };
+
+// chips genéricos
+function chips(el, opts, onSel) {
+  let sel = null;
+  el.innerHTML = opts.map((o, i) => `<button class="chip" aria-pressed="false" data-i="${i}">${o.dot ? `<span class="dot" style="background:${o.dot}"></span>` : ""}${o.label}</button>`).join("");
+  el.addEventListener("click", e => {
+    const b = e.target.closest(".chip"); if (!b) return;
+    el.querySelectorAll(".chip").forEach(c => c.setAttribute("aria-pressed", c === b));
+    sel = opts[b.dataset.i]; onSel(sel);
+  });
+}
+
+// combo
+let cPareo, cAso;
+const btnCombo = $("addCombo");
+const revCombo = () => { btnCombo.disabled = !(cPareo && cAso); btnCombo.textContent = btnCombo.disabled ? "Elige los dos colores" : "Agregar combo · $75.000"; };
+chips($("pareoChips"), PAREO.map(([l, d]) => ({ label: l, dot: d })), s => { cPareo = s.label; revCombo(); });
+chips($("comboAsoChips"), COLORES.map(([l, , d]) => ({ label: l, dot: d })), s => { cAso = s.label; revCombo(); });
+btnCombo.onclick = () => agregar({ tipo: "combo", nombre: "Combo pareo + asoleador (3 piezas)", detalle: `Pareo ${cPareo} · Asoleador ${cAso}`, img: "combo", precio: 75000 });
+
+// dalia: promo 3 piezas y dos piezas
+function fichaDalia(colorId, tallaId, btnId, nombre, precio, img) {
+  let col, tal; const btn = $(btnId);
+  const rev = () => { btn.disabled = !(col && tal); btn.textContent = btn.disabled ? "Elige color y talla" : `Agregar · ${fmt(precio)}`; };
+  chips($(colorId), DALIA_COL.map(([l, d]) => ({ label: l, dot: d })), s => { col = s.label; rev(); });
+  chips($(tallaId), ["S", "M", "L"].map(l => ({ label: l })), s => { tal = s.label; rev(); });
+  btn.onclick = () => agregar({ tipo: "dalia", nombre, detalle: `${col} · talla ${tal}`, img, precio });
+}
+fichaDalia("dpColor", "dpTalla", "addDP", "Dalia + set Estrella (3 piezas)", 110000, "estrella");
+fichaDalia("d2Color", "d2Talla", "addD2", "Dalia (2 piezas)", 80000, "dalia");
+
+// bicolor
+let bSel; const btnB = $("addBi");
+chips($("biChips"), BICOLOR.map(([l, a, b]) => ({ label: l, dot: `linear-gradient(90deg,${a} 50%,${b} 50%)` })), s => { bSel = s.label; btnB.disabled = false; btnB.textContent = "Agregar · $60.000"; });
+btnB.onclick = () => agregar({ tipo: "bicolor", nombre: "Bikini bicolor", detalle: bSel, img: "bicolor1", precio: 60000 });
+
+// enterizos y salidas
+function grid(el, items) {
+  el.innerHTML = items.map((it, i) => `
+    <div class="prod" data-q="${norm(it.nombre + " " + it.titulo)}"><div class="ph"><button class="ver" data-i="${i}" aria-label="Ver ${esc(it.titulo)}"><img src="img/${it.img}.jpg" alt="${esc(it.nombre)}" loading="lazy"></button></div>
+    <div class="row"><h3>${esc(it.titulo)}</h3><span class="price">${fmt(it.precio)}</span></div>
+    <button class="agregar" data-i="${i}">Agregar a la bolsa</button></div>`).join("");
+  el.addEventListener("click", e => {
+    const b = e.target.closest("button"); if (!b) return;
+    const it = items[b.dataset.i];
+    if (b.classList.contains("agregar")) agregar(it); else qvProd(it);
+  });
+}
+grid($("entGrid"), ENTERIZOS.map(([t, f, n]) => ({ tipo: "ent", titulo: t, nombre: "Enterizo " + (n || t), img: f, precio: 90000, eyebrow: "Enterizo", desc: "Todos los enterizos a $90.000. Escríbenos para confirmar tallas disponibles." })));
+grid($("salGrid"), SALIDAS.map(([t, f, p]) => ({ tipo: "sal", titulo: t, nombre: "Salida de baño " + t, img: f, precio: p, eyebrow: "Salida de baño", desc: "Combínala con tu asoleador o enterizo." })));
+
+// palabras para buscar en las fichas
+$("subCombo").dataset.q = norm("promocion promo combo 3 tres piezas pareo asoleador tul " + PAREO.map(p => p[0]).join(" ") + " " + COLORES.map(c => c[0]).join(" "));
+$("subDaliaPromo").dataset.q = norm("promocion promo 3 tres piezas dalia vestido de bano nuevo set estrella salida dorada " + DALIA_COL.map(c => c[0]).join(" "));
+$("subBicolor").dataset.q = norm("vestido de bano dos 2 piezas bikini bicolor argollas " + BICOLOR.map(c => c[0]).join(" "));
+$("subDalia").dataset.q = norm("vestido de bano dos 2 piezas bikini dalia nuevo estrella " + DALIA_COL.map(c => c[0]).join(" "));
+
+// best sellers: mezcla de referencias (cambia, quita o reordena las líneas)
+const aso = n => { const i = n - 1, [nm, f, c] = COLORES[i]; return { aso: i, img: f, titulo: nm, tipoTxt: "Asoleador", precio: 40000, dot: c }; };
+const prod = (titulo, tipoTxt, img, precio, item, desc) => ({ titulo, tipoTxt, img, precio, item: { ...item, titulo, eyebrow: tipoTxt, img, precio, desc } });
+const BEST = [
+  aso(1),
+  prod("Class Gold", "Enterizo", "classgold", 90000, { tipo: "ent", nombre: "Enterizo Class Gold" }, "Todos los enterizos a $90.000."),
+  prod("Bicolor café", "Bikini dos piezas", "bicolor1", 60000, { tipo: "bicolor", nombre: "Bikini bicolor", detalle: "Marrón con Blanco" }, "Marrón con blanco, talla única y tiras con argollas."),
+  aso(3),
+  { titulo: "Dalia + set Estrella", tipoTxt: "Promo 3 piezas", img: "estrella", precio: 110000, ir: "promociones" },
+  aso(13),
+  prod("Paradise", "Enterizo", "paradise", 90000, { tipo: "ent", nombre: "Enterizo Paradise" }, "Todos los enterizos a $90.000."),
+  { titulo: "Pareo + asoleador", tipoTxt: "Promo 3 piezas", img: "combo", precio: 75000, ir: "promociones" },
+  aso(10),
+  prod("Falda", "Salida de baño", "falda", 65000, { tipo: "sal", nombre: "Salida de baño Falda" }, "Combínala con tu asoleador o enterizo.")
+];
+$("favs").innerHTML = BEST.map((b, i) => `
+  <div class="fav-card">
+    <div class="ph"><button class="ver" data-b="${i}" aria-label="Ver ${esc(b.titulo)}"><img src="img/${b.img}.jpg" alt="" loading="lazy"></button><span class="tag">★ Best seller</span></div>
+    <div class="row"><h3>${b.dot ? `<span class="dot" style="background:${b.dot};width:14px;height:14px"></span>` : ""}${esc(b.titulo)}</h3><button class="mas" data-b="${i}" data-accion="1">${b.ir ? "Elegir" : "+ Agregar"}</button></div>
+    <small>${esc(b.tipoTxt)} · ${fmt(b.precio)}</small>
+  </div>`).join("");
+$("favs").addEventListener("click", e => {
+  const btn = e.target.closest("button"); if (!btn) return;
+  const b = BEST[btn.dataset.b];
+  if (b.ir) { mostrar(b.ir); return; }
+  if (btn.dataset.accion) agregar(b.aso != null ? asoItem(b.aso) : b.item);
+  else if (b.aso != null) qvAso(b.aso); else qvProd(b.item);
+});
+const pasoFav = d => { const c = $("favs"), card = c.querySelector(".fav-card"); c.scrollBy({ left: d * (card ? card.offsetWidth + 16 : 280), behavior: "smooth" }); };
+$("favPrev").onclick = () => pasoFav(-1);
+$("favNext").onclick = () => pasoFav(1);
+
+// vista rápida
+let qvItem = null;
+const qvAbrir = () => { $("qv").hidden = false; $("qvX").focus(); };
+const qvCerrar = () => { $("qv").hidden = true; };
+function qvAso(i) {
+  const [n, f] = COLORES[i];
+  $("qvImg").src = `img/${f}.jpg`; $("qvImg").alt = "Asoleador " + n;
+  $("qvEy").textContent = `Asoleador · ${String(i + 1).padStart(2, "0")} de 13`;
+  $("qvT").textContent = n; $("qvP").textContent = "$40.000";
+  $("qvD").textContent = "Talla única con tiras ajustables. Lleva 3 asoleadores por $100.000.";
+  $("qvSw").hidden = false;
+  $("qvSw").innerHTML = COLORES.map(([nn, , c], j) => `<button class="sw" data-j="${j}" title="${nn}" aria-label="${nn}" aria-pressed="${j === i}" style="background:${c}"></button>`).join("");
+  qvItem = asoItem(i);
+  if ($("qv").hidden) qvAbrir();
+}
+function qvProd(it) {
+  $("qvImg").src = `img/${it.img}.jpg`; $("qvImg").alt = it.nombre;
+  $("qvEy").textContent = it.eyebrow; $("qvT").textContent = it.titulo;
+  $("qvP").textContent = fmt(it.precio); $("qvD").textContent = it.desc;
+  $("qvSw").hidden = true; qvItem = it; qvAbrir();
+}
+$("qvSw").addEventListener("click", e => { const b = e.target.closest(".sw"); if (b) qvAso(+b.dataset.j); });
+$("qvAdd").onclick = () => { agregar(qvItem); qvCerrar(); };
+$("qvX").onclick = qvCerrar;
+$("qv").addEventListener("click", e => { if (e.target.id === "qv") qvCerrar(); });
+
+// menú de categorías
+const CATS = [
+  ["todo", "Todo"], ["asoleadores", "Asoleadores", 13], ["promociones", "Promociones", 0, "3 piezas"],
+  ["dospiezas", "Dos piezas", 2], ["enterizos", "Enterizos", 3], ["salidas", "Salidas de baño", 4]
+];
+$("cats").innerHTML = CATS.map(([id, t, c, badge]) => `<button class="cat" role="tab" data-cat="${id}" aria-selected="false">${t}${c ? `<span class="c">${c}</span>` : ""}${badge ? `<span class="new">${badge}</span>` : ""}</button>`).join("");
+let catActual = "todo";
+const vistas = [...document.querySelectorAll("[data-vista]")];
+function mostrar(cat, animar = true) {
+  catActual = cat; $("q").value = ""; $("resultado").hidden = $("sin").hidden = true;
+  document.querySelectorAll("#asoGrid .aso, .prod, .sub").forEach(el => el.hidden = false);
+  $("asoFiltro").hidden = false; aplicarAso();
+  $("catalogoHead").hidden = cat === "todo";
+  vistas.forEach(el => {
+    const v = el.dataset.vista;
+    el.hidden = cat === "todo" ? false : v !== cat;
+    if (!el.hidden && animar) { el.classList.remove("vista-anim"); void el.offsetWidth; el.classList.add("vista-anim"); }
+  });
+  document.querySelectorAll(".cat").forEach(b => {
+    const on = b.dataset.cat === cat; b.setAttribute("aria-selected", on);
+    if (on) { const w = $("cats"); w.scrollTo({ left: b.offsetLeft - w.clientWidth / 2 + b.offsetWidth / 2, behavior: "smooth" }); }
+  });
+  document.querySelectorAll("#menuLinks a").forEach(a => a.setAttribute("aria-current", a.dataset.ir === cat));
+  try { history.replaceState(null, "", "#" + cat); } catch (e) {}
+  if (animar) window.scrollTo({ top: 0, behavior: "smooth" });
+}
+$("cats").addEventListener("click", e => { const b = e.target.closest(".cat"); if (b) mostrar(b.dataset.cat); });
+document.addEventListener("click", e => { const a = e.target.closest("[data-ir]"); if (a) { e.preventDefault(); abrirMenu(false); mostrar(a.dataset.ir); } });
+
+// menú lateral
+$("menuLinks").innerHTML = CATS.map(([id, t, c]) => `<a href="#${id}" data-ir="${id}">${id === "todo" ? "Inicio" : t}${c ? `<span class="c">${c}</span>` : ""}</a>`).join("");
+function abrirMenu(v) { $("menu").hidden = $("menuFondo").hidden = !v; }
+$("abrirMenu").onclick = () => abrirMenu(true);
+$("menuX").onclick = $("menuFondo").onclick = () => abrirMenu(false);
+
+// lupa
+$("abrirBuscar").onclick = () => {
+  const abierto = $("buscador").hidden;
+  $("buscador").hidden = !abierto; $("abrirBuscar").setAttribute("aria-expanded", abierto);
+  if (abierto) $("q").focus(); else if ($("q").value) { $("q").value = ""; mostrar(catActual, false); }
+};
+
+// WhatsApp directo
+const waHola = `https://wa.me/${WHATSAPP}?text=${encodeURIComponent("Hola Naïve! Quiero información sobre la colección de playa.")}`;
+$("menuWa").href = $("waFloat").href = waHola;
+
+// buscador
+$("q").addEventListener("input", () => {
+  const q = norm($("q").value.trim());
+  if (!q) { mostrar(catActual, false); return; }
+  document.querySelectorAll(".cat").forEach(b => b.setAttribute("aria-selected", "false"));
+  let total = 0;
+  vistas.forEach(el => {
+    const v = el.dataset.vista;
+    if (v === "inicio" || v === "precios") { el.hidden = true; return; }
+    if (v === "asoleadores") { $("asoFiltro").hidden = $("asoMas").hidden = true; }
+    const hijos = el.querySelectorAll(".aso, .prod, .sub");
+    let n = 0;
+    if (hijos.length) hijos.forEach(h => { h.hidden = !h.dataset.q.includes(q); if (!h.hidden) n++; });
+    else n = (el.dataset.q || "").includes(q) ? 1 : 0;
+    el.hidden = n === 0; total += n;
+  });
+  $("resultado").hidden = total === 0;
+  $("resultado").textContent = `${total} resultado${total === 1 ? "" : "s"} para “${$("q").value.trim()}”`;
+  $("sin").hidden = total > 0;
+});
+
+const inicial = (location.hash || "").slice(1);
+mostrar(CATS.some(c => c[0] === inicial) ? inicial : "todo", false);
+
+// totales: cada 3 asoleadores sueltos cuestan $100.000
+function totales() {
+  const nAso = bolsa.filter(b => b.tipo === "aso").reduce((s, b) => s + b.cant, 0);
+  const bruto = bolsa.reduce((s, b) => s + b.precio * b.cant, 0);
+  const ahorro = Math.floor(nAso / 3) * 20000;
+  return { nAso, bruto, ahorro, total: bruto - ahorro, piezas: bolsa.reduce((s, b) => s + b.cant, 0) };
+}
+
+function pintarBolsa() {
+  const t = totales();
+  $("cuenta").textContent = t.piezas; $("cuenta").hidden = !t.piezas;
+  const en = t.nAso % 3;
+  document.querySelectorAll("#paDots i").forEach((d, i) => d.classList.toggle("on", t.nAso > 0 && (en === 0 || i < en)));
+  $("paTxt").textContent = !t.nAso ? "Elige 3 colores y paga $100.000"
+    : en === 0 ? `¡Promo aplicada! Llevas ${t.nAso} asoleadores`
+    : `Llevas ${t.nAso} · agrega ${3 - en} más y aplica la promo`;
+  if (!bolsa.length) {
+    $("items").innerHTML = `<p class="vacio">Tu bolsa está vacía.<br>Toca un asoleador o un producto para agregarlo.</p>`;
+    $("resumen").innerHTML = ""; $("wa").hidden = true; return;
+  }
+  $("wa").hidden = false;
+  $("items").innerHTML = bolsa.map((b, i) => `
+    <div class="item"><img src="img/${b.img}.jpg" alt="">
+      <div>${esc(b.nombre)}${b.detalle ? `<small>${esc(b.detalle)}</small>` : ""}<small>${fmt(b.precio)}</small></div>
+      <div class="qty"><button data-i="${i}" data-d="-1" aria-label="Quitar uno">−</button><span>${b.cant}</span><button data-i="${i}" data-d="1" aria-label="Agregar uno">+</button></div>
+    </div>`).join("");
+  const falta = t.nAso % 3 ? 3 - (t.nAso % 3) : 0;
+  $("resumen").innerHTML = `
+    <div class="row"><span>Subtotal</span><span>${fmt(t.bruto)}</span></div>
+    ${t.ahorro ? `<div class="row ahorro"><span>Promo 3 asoleadores × $100.000</span><span>−${fmt(t.ahorro)}</span></div>` : ""}
+    ${t.nAso && falta ? `<p class="nota">Agrega ${falta} asoleador${falta > 1 ? "es" : ""} más y paga 3 × $100.000.</p>` : ""}
+    <div class="row"><span>Total</span><span class="tot">${fmt(t.total)}</span></div>
+    ${t.total < 45000 ? `<p class="nota">Contraentrega disponible desde $45.000.</p>` : ""}`;
+  const lineas = bolsa.map(b => `• ${b.cant} × ${b.nombre}${b.ref ? " (#" + b.ref + ")" : ""}${b.detalle ? " – " + b.detalle : ""}`);
+  const msg = `Hola Naïve! Quiero hacer este pedido:\n${lineas.join("\n")}\n\nTotal: ${fmt(t.total)}${t.ahorro ? " (con promo 3 asoleadores)" : ""}\nCiudad: \nNombre: `;
+  $("wa").href = `https://wa.me/${WHATSAPP}?text=${encodeURIComponent(msg)}`;
+}
+$("items").addEventListener("click", e => {
+  const b = e.target.closest("button[data-d]"); if (!b) return;
+  const it = bolsa[b.dataset.i]; it.cant += +b.dataset.d;
+  if (it.cant <= 0) bolsa.splice(b.dataset.i, 1);
+  guardar(); pintarBolsa();
+});
+const abrir = v => { $("drawer").hidden = $("overlay").hidden = !v; };
+$("abrirBolsa").onclick = () => abrir(true);
+$("cerrar").onclick = $("overlay").onclick = () => abrir(false);
+document.addEventListener("keydown", e => { if (e.key === "Escape") { abrir(false); qvCerrar(); abrirMenu(false); } });
+pintarBolsa();
+</script>
+
+</body>
+</html>
