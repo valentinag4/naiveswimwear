@@ -229,7 +229,7 @@ section.cap{padding-block:72px 24px}
 .prod-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:22px 16px}
 @media (max-width:900px){.prod-grid{grid-template-columns:repeat(2,1fr)}}
 .prod{display:grid;gap:10px;align-content:start}
-.prod .ph{aspect-ratio:3/4;border-radius:6px;overflow:hidden;background:var(--arena-2)}
+.prod .ph{position:relative;aspect-ratio:3/4;border-radius:6px;overflow:hidden;background:var(--arena-2)}
 .prod img{width:100%;height:100%;object-fit:cover}
 .prod .row{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
 .prod h3{font-size:1.5rem}
@@ -274,6 +274,13 @@ footer svg{width:54px;margin:0 auto 10px}
 
 .toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--cacao);color:var(--sobre-cacao);padding:12px 20px;border-radius:999px;font-size:.88rem;z-index:50;transition:opacity .25s}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+/* agotados (según la hoja de inventario) */
+.agotado img{filter:grayscale(.6);opacity:.55}
+.agotado .ph::after{content:"Agotado";position:absolute;top:10px;right:10px;background:var(--cacao);color:var(--sobre-cacao);font-size:.66rem;letter-spacing:.14em;text-transform:uppercase;padding:4px 10px;border-radius:999px;pointer-events:none}
+.oculto{display:none!important}
+button:disabled{cursor:not-allowed;opacity:.55}
+.chip:disabled{opacity:.4;text-decoration:line-through}
+.sw.agotado{opacity:.3}
 </style>
 </head>
 <body>
@@ -479,11 +486,21 @@ const $ = id => document.getElementById(id);
 const fmt = n => "$" + n.toLocaleString("es-CO");
 const esc = s => s.replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 
+// inventario: pestaña Web de la hoja "Naïve - Inventario y ventas", publicada como CSV
+const STOCK_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vT7nvsKGUm4_xxTpLH_ucF2jeb9MHzAoANP_7EET9YxeSVr4SadGLposTkBZ6liE-tjFlxBSnz0rhuH/pub?gid=1456077692&single=true&output=csv";
+let STOCK = {};
+const agotado = id => !!id && !!STOCK[id] && STOCK[id].stock <= 0;
+const oculto = id => !!id && !!STOCK[id] && STOCK[id].stock > 0 && !STOCK[id].disp;
+const revisores = [];
+const idAso = i => "ASO-" + String(i + 1).padStart(2, "0");
+const idDe = (pre, i) => pre + "-" + String(i + 1).padStart(2, "0");
+
 let bolsa = [];
 try { bolsa = JSON.parse(localStorage.getItem("naive-bolsa") || "[]"); } catch (e) {}
 const guardar = () => { try { localStorage.setItem("naive-bolsa", JSON.stringify(bolsa)); } catch (e) {} };
 
 function agregar(item) {
+  if ((item.ids || [item.id]).some(agotado)) { avisar("Ese producto está agotado"); return; }
   const k = item.tipo + "|" + item.nombre + "|" + (item.detalle || "");
   const ya = bolsa.find(b => b.k === k);
   if (ya) ya.cant++; else bolsa.push({ ...item, k, cant: 1 });
@@ -495,9 +512,9 @@ let tId;
 function avisar(t) { const el = $("toast"); el.textContent = t; el.hidden = false; clearTimeout(tId); tId = setTimeout(() => el.hidden = true, 1800); }
 
 // asoleadores
-const asoItem = i => { const [n, f] = COLORES[i]; return { tipo: "aso", nombre: "Asoleador " + n, img: f, precio: 40000, ref: String(i + 1).padStart(2, "0") }; };
+const asoItem = i => { const [n, f] = COLORES[i]; return { tipo: "aso", id: idAso(i), nombre: "Asoleador " + n, img: f, precio: 40000, ref: String(i + 1).padStart(2, "0") }; };
 $("asoGrid").innerHTML = COLORES.map(([n, f, c], i) => `
-  <div class="aso" data-grupo="${i < 6 ? "tierra" : "vibrante"}" data-q="${norm("asoleador bikini " + n + (i < 6 ? " tierra" : " vibrante pastel"))}">
+  <div class="aso" data-id="${idAso(i)}" data-grupo="${i < 6 ? "tierra" : "vibrante"}" data-q="${norm("asoleador bikini " + n + (i < 6 ? " tierra" : " vibrante pastel"))}">
     <div class="ph"><button class="ver" data-i="${i}" aria-label="Ver asoleador ${n}"><img src="img/${f}.jpg" alt="" loading="lazy"></button><span class="num">${String(i + 1).padStart(2, "0")}</span><button class="add" data-i="${i}" aria-label="Agregar asoleador ${n}">+ Agregar</button></div>
     <span class="name"><span class="dot" style="background:${c}"></span>${n}</span>
   </div>`).join("");
@@ -523,7 +540,7 @@ $("asoMas").onclick = () => { asoTodo = true; aplicarAso(); };
 // chips genéricos
 function chips(el, opts, onSel) {
   let sel = null;
-  el.innerHTML = opts.map((o, i) => `<button class="chip" aria-pressed="false" data-i="${i}">${o.dot ? `<span class="dot" style="background:${o.dot}"></span>` : ""}${o.label}</button>`).join("");
+  el.innerHTML = opts.map((o, i) => `<button class="chip" aria-pressed="false" data-i="${i}"${o.id ? ` data-id="${o.id}"` : ""}>${o.dot ? `<span class="dot" style="background:${o.dot}"></span>` : ""}${o.label}</button>`).join("");
   el.addEventListener("click", e => {
     const b = e.target.closest(".chip"); if (!b) return;
     el.querySelectorAll(".chip").forEach(c => c.setAttribute("aria-pressed", c === b));
@@ -532,33 +549,37 @@ function chips(el, opts, onSel) {
 }
 
 // combo
-let cPareo, cAso;
+let cPareo, cAso, cPareoId, cAsoId;
 const btnCombo = $("addCombo");
 const revCombo = () => { btnCombo.disabled = !(cPareo && cAso); btnCombo.textContent = btnCombo.disabled ? "Elige los dos colores" : "Agregar combo · $75.000"; };
-chips($("pareoChips"), PAREO.map(([l, d]) => ({ label: l, dot: d })), s => { cPareo = s.label; revCombo(); });
-chips($("comboAsoChips"), COLORES.map(([l, , d]) => ({ label: l, dot: d })), s => { cAso = s.label; revCombo(); });
-btnCombo.onclick = () => agregar({ tipo: "combo", nombre: "Combo pareo + asoleador (3 piezas)", detalle: `Pareo ${cPareo} · Asoleador ${cAso}`, img: "combo", precio: 75000 });
+chips($("pareoChips"), PAREO.map(([l, d], i) => ({ label: l, dot: d, id: idDe("PAR", i) })), s => { cPareo = s.label; cPareoId = s.id; revCombo(); });
+chips($("comboAsoChips"), COLORES.map(([l, , d], i) => ({ label: l, dot: d, id: idAso(i) })), s => { cAso = s.label; cAsoId = s.id; revCombo(); });
+btnCombo.onclick = () => agregar({ tipo: "combo", nombre: "Combo pareo + asoleador (3 piezas)", detalle: `Pareo ${cPareo} · Asoleador ${cAso}`, img: "combo", precio: 75000, ids: [cPareoId, cAsoId] });
 
 // dalia: promo 3 piezas y dos piezas
-function fichaDalia(colorId, tallaId, btnId, nombre, precio, img) {
-  let col, tal; const btn = $(btnId);
-  const rev = () => { btn.disabled = !(col && tal); btn.textContent = btn.disabled ? "Elige color y talla" : `Agregar · ${fmt(precio)}`; };
-  chips($(colorId), DALIA_COL.map(([l, d]) => ({ label: l, dot: d })), s => { col = s.label; rev(); });
+function fichaDalia(colorId, tallaId, btnId, nombre, precio, img, extraId) {
+  let col, colId, tal; const btn = $(btnId);
+  const rev = () => {
+    if (agotado(extraId)) { btn.disabled = true; btn.textContent = "Set Estrella agotado"; return; }
+    btn.disabled = !(col && tal); btn.textContent = btn.disabled ? "Elige color y talla" : `Agregar · ${fmt(precio)}`;
+  };
+  revisores.push(rev);
+  chips($(colorId), DALIA_COL.map(([l, d], i) => ({ label: l, dot: d, id: idDe("DAL", i) })), s => { col = s.label; colId = s.id; rev(); });
   chips($(tallaId), ["S", "M", "L"].map(l => ({ label: l })), s => { tal = s.label; rev(); });
-  btn.onclick = () => agregar({ tipo: "dalia", nombre, detalle: `${col} · talla ${tal}`, img, precio });
+  btn.onclick = () => agregar({ tipo: "dalia", nombre, detalle: `${col} · talla ${tal}`, img, precio, ids: [colId, extraId] });
 }
-fichaDalia("dpColor", "dpTalla", "addDP", "Dalia + set Estrella (3 piezas)", 110000, "estrella");
+fichaDalia("dpColor", "dpTalla", "addDP", "Dalia + set Estrella (3 piezas)", 110000, "estrella", "EST-01");
 fichaDalia("d2Color", "d2Talla", "addD2", "Dalia (2 piezas)", 80000, "dalia");
 
 // bicolor
-let bSel; const btnB = $("addBi");
-chips($("biChips"), BICOLOR.map(([l, a, b]) => ({ label: l, dot: `linear-gradient(90deg,${a} 50%,${b} 50%)` })), s => { bSel = s.label; btnB.disabled = false; btnB.textContent = "Agregar · $60.000"; });
-btnB.onclick = () => agregar({ tipo: "bicolor", nombre: "Bikini bicolor", detalle: bSel, img: "bicolor1", precio: 60000 });
+let bSel, bId; const btnB = $("addBi");
+chips($("biChips"), BICOLOR.map(([l, a, b], i) => ({ label: l, dot: `linear-gradient(90deg,${a} 50%,${b} 50%)`, id: idDe("BIC", i) })), s => { bSel = s.label; bId = s.id; btnB.disabled = false; btnB.textContent = "Agregar · $60.000"; });
+btnB.onclick = () => agregar({ tipo: "bicolor", nombre: "Bikini bicolor", detalle: bSel, img: "bicolor1", precio: 60000, id: bId });
 
 // enterizos y salidas
 function grid(el, items) {
   el.innerHTML = items.map((it, i) => `
-    <div class="prod" data-q="${norm(it.nombre + " " + it.titulo)}"><div class="ph"><button class="ver" data-i="${i}" aria-label="Ver ${esc(it.titulo)}"><img src="img/${it.img}.jpg" alt="${esc(it.nombre)}" loading="lazy"></button></div>
+    <div class="prod" data-id="${it.id}" data-q="${norm(it.nombre + " " + it.titulo)}"><div class="ph"><button class="ver" data-i="${i}" aria-label="Ver ${esc(it.titulo)}"><img src="img/${it.img}.jpg" alt="${esc(it.nombre)}" loading="lazy"></button></div>
     <div class="row"><h3>${esc(it.titulo)}</h3><span class="price">${fmt(it.precio)}</span></div>
     <button class="agregar" data-i="${i}">Agregar a la bolsa</button></div>`).join("");
   el.addEventListener("click", e => {
@@ -567,8 +588,8 @@ function grid(el, items) {
     if (b.classList.contains("agregar")) agregar(it); else qvProd(it);
   });
 }
-grid($("entGrid"), ENTERIZOS.map(([t, f, n]) => ({ tipo: "ent", titulo: t, nombre: "Enterizo " + (n || t), img: f, precio: 90000, eyebrow: "Enterizo", desc: "Todos los enterizos a $90.000. Escríbenos para confirmar tallas disponibles." })));
-grid($("salGrid"), SALIDAS.map(([t, f, p]) => ({ tipo: "sal", titulo: t, nombre: "Salida de baño " + t, img: f, precio: p, eyebrow: "Salida de baño", desc: "Combínala con tu asoleador o enterizo." })));
+grid($("entGrid"), ENTERIZOS.map(([t, f, n], i) => ({ tipo: "ent", id: idDe("ENT", Math.min(i, 2)), titulo: t, nombre: "Enterizo " + (n || t), img: f, precio: 90000, eyebrow: "Enterizo", desc: "Todos los enterizos a $90.000. Escríbenos para confirmar tallas disponibles." })));
+grid($("salGrid"), SALIDAS.map(([t, f, p], i) => ({ tipo: "sal", id: idDe("SAL", i), titulo: t, nombre: "Salida de baño " + t, img: f, precio: p, eyebrow: "Salida de baño", desc: "Combínala con tu asoleador o enterizo." })));
 
 // palabras para buscar en las fichas
 $("subCombo").dataset.q = norm("promocion promo combo 3 tres piezas pareo asoleador tul " + PAREO.map(p => p[0]).join(" ") + " " + COLORES.map(c => c[0]).join(" "));
@@ -581,18 +602,18 @@ const aso = n => { const i = n - 1, [nm, f, c] = COLORES[i]; return { aso: i, im
 const prod = (titulo, tipoTxt, img, precio, item, desc) => ({ titulo, tipoTxt, img, precio, item: { ...item, titulo, eyebrow: tipoTxt, img, precio, desc } });
 const BEST = [
   aso(1),
-  prod("Class Gold", "Enterizo", "classgold", 90000, { tipo: "ent", nombre: "Enterizo Class Gold" }, "Todos los enterizos a $90.000."),
-  prod("Bicolor café", "Bikini dos piezas", "bicolor1", 60000, { tipo: "bicolor", nombre: "Bikini bicolor", detalle: "Marrón con Blanco" }, "Marrón con blanco, talla única y tiras con argollas."),
+  prod("Class Gold", "Enterizo", "classgold", 90000, { tipo: "ent", id: "ENT-01", nombre: "Enterizo Class Gold" }, "Todos los enterizos a $90.000."),
+  prod("Bicolor café", "Bikini dos piezas", "bicolor1", 60000, { tipo: "bicolor", id: "BIC-03", nombre: "Bikini bicolor", detalle: "Marrón con Blanco" }, "Marrón con blanco, talla única y tiras con argollas."),
   aso(3),
   { titulo: "Dalia + set Estrella", tipoTxt: "Promo 3 piezas", img: "estrella", precio: 110000, ir: "promociones" },
   aso(13),
-  prod("Paradise", "Enterizo", "paradise", 90000, { tipo: "ent", nombre: "Enterizo Paradise" }, "Todos los enterizos a $90.000."),
+  prod("Paradise", "Enterizo", "paradise", 90000, { tipo: "ent", id: "ENT-02", nombre: "Enterizo Paradise" }, "Todos los enterizos a $90.000."),
   { titulo: "Pareo + asoleador", tipoTxt: "Promo 3 piezas", img: "combo", precio: 75000, ir: "promociones" },
   aso(10),
-  prod("Falda", "Salida de baño", "falda", 65000, { tipo: "sal", nombre: "Salida de baño Falda" }, "Combínala con tu asoleador o enterizo.")
+  prod("Falda", "Salida de baño", "falda", 65000, { tipo: "sal", id: "SAL-01", nombre: "Salida de baño Falda" }, "Combínala con tu asoleador o enterizo.")
 ];
 $("favs").innerHTML = BEST.map((b, i) => `
-  <div class="fav-card">
+  <div class="fav-card" data-id="${b.aso != null ? idAso(b.aso) : b.item ? b.item.id : ""}">
     <div class="ph"><button class="ver" data-b="${i}" aria-label="Ver ${esc(b.titulo)}"><img src="img/${b.img}.jpg" alt="" loading="lazy"></button><span class="tag">★ Best seller</span></div>
     <div class="row"><h3>${b.dot ? `<span class="dot" style="background:${b.dot};width:14px;height:14px"></span>` : ""}${esc(b.titulo)}</h3><button class="mas" data-b="${i}" data-accion="1">${b.ir ? "Elegir" : "+ Agregar"}</button></div>
     <small>${esc(b.tipoTxt)} · ${fmt(b.precio)}</small>
@@ -610,6 +631,7 @@ $("favNext").onclick = () => pasoFav(1);
 
 // vista rápida
 let qvItem = null;
+function qvBoton(id) { const ag = agotado(id); $("qvAdd").disabled = ag; $("qvAdd").textContent = ag ? "Agotado" : "Agregar a la bolsa"; }
 const qvAbrir = () => { $("qv").hidden = false; $("qvX").focus(); };
 const qvCerrar = () => { $("qv").hidden = true; };
 function qvAso(i) {
@@ -620,14 +642,15 @@ function qvAso(i) {
   $("qvD").textContent = "Talla única con tiras ajustables. Lleva 3 asoleadores por $100.000.";
   $("qvSw").hidden = false;
   $("qvSw").innerHTML = COLORES.map(([nn, , c], j) => `<button class="sw" data-j="${j}" title="${nn}" aria-label="${nn}" aria-pressed="${j === i}" style="background:${c}"></button>`).join("");
-  qvItem = asoItem(i);
+  $("qvSw").querySelectorAll(".sw").forEach(b => b.classList.toggle("agotado", agotado(idAso(+b.dataset.j))));
+  qvItem = asoItem(i); qvBoton(qvItem.id);
   if ($("qv").hidden) qvAbrir();
 }
 function qvProd(it) {
   $("qvImg").src = `img/${it.img}.jpg`; $("qvImg").alt = it.nombre;
   $("qvEy").textContent = it.eyebrow; $("qvT").textContent = it.titulo;
   $("qvP").textContent = fmt(it.precio); $("qvD").textContent = it.desc;
-  $("qvSw").hidden = true; qvItem = it; qvAbrir();
+  $("qvSw").hidden = true; qvItem = it; qvBoton(it.id); qvAbrir();
 }
 $("qvSw").addEventListener("click", e => { const b = e.target.closest(".sw"); if (b) qvAso(+b.dataset.j); });
 $("qvAdd").onclick = () => { agregar(qvItem); qvCerrar(); };
@@ -752,6 +775,30 @@ $("abrirBolsa").onclick = () => abrir(true);
 $("cerrar").onclick = $("overlay").onclick = () => abrir(false);
 document.addEventListener("keydown", e => { if (e.key === "Escape") { abrir(false); qvCerrar(); abrirMenu(false); } });
 pintarBolsa();
+
+function aplicarStock() {
+  document.querySelectorAll("[data-id]").forEach(el => {
+    const id = el.dataset.id; if (!id) return;
+    const ag = agotado(id);
+    el.classList.toggle("agotado", ag);
+    el.classList.toggle("oculto", oculto(id));
+    if (el.classList.contains("chip")) { el.disabled = ag; if (ag) el.title = "Agotado"; return; }
+    el.querySelectorAll(".add, .agregar, .mas").forEach(b => { b.disabled = ag; if (ag) b.textContent = "Agotado"; });
+  });
+  revisores.forEach(f => f());
+}
+async function cargarStock() {
+  try {
+    const r = await fetch(STOCK_URL, { cache: "no-store" });
+    if (!r.ok) return;
+    (await r.text()).trim().split(/\r?\n/).slice(1).forEach(l => {
+      const c = l.split(",");
+      if (c[0]) STOCK[c[0].trim()] = { stock: parseInt(c[3], 10) || 0, disp: (c[4] || "").trim() === "si" };
+    });
+    aplicarStock();
+  } catch (e) {}
+}
+cargarStock();
 </script>
 
 </body>
