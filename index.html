@@ -337,7 +337,7 @@ button:disabled{cursor:not-allowed;opacity:.55}
   <div class="wrap resultado" id="resultado" hidden></div>
   <section class="cap wrap" id="asoleadores" data-vista="asoleadores">
     <div class="cap-head">
-      <div><div class="eyebrow">Colección asoleadores · 01 — 13</div><h2>Asole<em>adores</em></h2><p>Talla única con tiras ajustables.</p></div>
+      <div><div class="eyebrow">Asoleadores · 13 colores</div><h2>Golden <em>Hour</em></h2><p>Talla única con tiras ajustables.</p></div>
     </div>
     <div class="promo-aso">
       <div class="pa-txt"><span class="tag-p">Promo</span><div class="pa-big">3 asoleadores <b>$100.000</b></div><div class="pa-small">1 asoleador $40.000 · Ahorras $20.000 combinando los colores que quieras</div></div>
@@ -512,10 +512,10 @@ let tId;
 function avisar(t) { const el = $("toast"); el.textContent = t; el.hidden = false; clearTimeout(tId); tId = setTimeout(() => el.hidden = true, 1800); }
 
 // asoleadores
-const asoItem = i => { const [n, f] = COLORES[i]; return { tipo: "aso", id: idAso(i), nombre: "Asoleador " + n, img: f, precio: 40000, ref: String(i + 1).padStart(2, "0") }; };
+const asoItem = i => { const [n, f] = COLORES[i]; return { tipo: "aso", id: idAso(i), nombre: "Golden Hour " + n, img: f, precio: 40000, ref: String(i + 1).padStart(2, "0") }; };
 $("asoGrid").innerHTML = COLORES.map(([n, f, c], i) => `
-  <div class="aso" data-id="${idAso(i)}" data-grupo="${i < 6 ? "tierra" : "vibrante"}" data-q="${norm("asoleador bikini " + n + (i < 6 ? " tierra" : " vibrante pastel"))}">
-    <div class="ph"><button class="ver" data-i="${i}" aria-label="Ver asoleador ${n}"><img src="img/${f}.jpg" alt="" loading="lazy"></button><span class="num">${String(i + 1).padStart(2, "0")}</span><button class="add" data-i="${i}" aria-label="Agregar asoleador ${n}">+ Agregar</button></div>
+  <div class="aso" data-id="${idAso(i)}" data-grupo="${i < 6 ? "tierra" : "vibrante"}" data-q="${norm("asoleador golden hour bikini " + n + (i < 6 ? " tierra" : " vibrante pastel"))}">
+    <div class="ph"><button class="ver" data-i="${i}" aria-label="Ver Golden Hour ${n}"><img src="img/${f}.jpg" alt="" loading="lazy"></button><span class="num">${String(i + 1).padStart(2, "0")}</span><button class="add" data-i="${i}" aria-label="Agregar Golden Hour ${n}">+ Agregar</button></div>
     <span class="name"><span class="dot" style="background:${c}"></span>${n}</span>
   </div>`).join("");
 $("asoGrid").addEventListener("click", e => {
@@ -554,7 +554,7 @@ const btnCombo = $("addCombo");
 const revCombo = () => { btnCombo.disabled = !(cPareo && cAso); btnCombo.textContent = btnCombo.disabled ? "Elige los dos colores" : "Agregar combo · $75.000"; };
 chips($("pareoChips"), PAREO.map(([l, d], i) => ({ label: l, dot: d, id: idDe("PAR", i) })), s => { cPareo = s.label; cPareoId = s.id; revCombo(); });
 chips($("comboAsoChips"), COLORES.map(([l, , d], i) => ({ label: l, dot: d, id: idAso(i) })), s => { cAso = s.label; cAsoId = s.id; revCombo(); });
-btnCombo.onclick = () => agregar({ tipo: "combo", nombre: "Combo pareo + asoleador (3 piezas)", detalle: `Pareo ${cPareo} · Asoleador ${cAso}`, img: "combo", precio: 75000, ids: [cPareoId, cAsoId] });
+btnCombo.onclick = () => agregar({ tipo: "combo", nombre: "Combo pareo + asoleador (3 piezas)", detalle: `Pareo ${cPareo} · Golden Hour ${cAso}`, img: "combo", precio: 75000, ids: [cPareoId, cAsoId] });
 
 // dalia: promo 3 piezas y dos piezas
 function fichaDalia(colorId, tallaId, btnId, nombre, precio, img, extraId) {
@@ -598,7 +598,7 @@ $("subBicolor").dataset.q = norm("vestido de bano dos 2 piezas bikini bicolor ar
 $("subDalia").dataset.q = norm("vestido de bano dos 2 piezas bikini dalia nuevo estrella " + DALIA_COL.map(c => c[0]).join(" "));
 
 // best sellers: mezcla de referencias (cambia, quita o reordena las líneas)
-const aso = n => { const i = n - 1, [nm, f, c] = COLORES[i]; return { aso: i, img: f, titulo: nm, tipoTxt: "Asoleador", precio: 40000, dot: c }; };
+const aso = n => { const i = n - 1, [nm, f, c] = COLORES[i]; return { aso: i, img: f, titulo: nm, tipoTxt: "Golden Hour", precio: 40000, dot: c }; };
 const prod = (titulo, tipoTxt, img, precio, item, desc) => ({ titulo, tipoTxt, img, precio, item: { ...item, titulo, eyebrow: tipoTxt, img, precio, desc } });
 const BEST = [
   aso(1),
@@ -636,8 +636,8 @@ const qvAbrir = () => { $("qv").hidden = false; $("qvX").focus(); };
 const qvCerrar = () => { $("qv").hidden = true; };
 function qvAso(i) {
   const [n, f] = COLORES[i];
-  $("qvImg").src = `img/${f}.jpg`; $("qvImg").alt = "Asoleador " + n;
-  $("qvEy").textContent = `Asoleador · ${String(i + 1).padStart(2, "0")} de 13`;
+  $("qvImg").src = `img/${f}.jpg`; $("qvImg").alt = "Golden Hour " + n;
+  $("qvEy").textContent = `Golden Hour · ${String(i + 1).padStart(2, "0")} de 13`;
   $("qvT").textContent = n; $("qvP").textContent = "$40.000";
   $("qvD").textContent = "Talla única con tiras ajustables. Lleva 3 asoleadores por $100.000.";
   $("qvSw").hidden = false;
